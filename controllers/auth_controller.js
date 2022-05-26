@@ -13,38 +13,40 @@ const createUser = async( req, res = response ) => {
 
         const emailExist = await User.findOne({email});
 
-        if(emailExist ){
+        if( emailExist ){
             res.status(400).json({
                 ok:false,        
-                msg: 'Email exist'
+                msg: 'Email exist!'
+            });
+        }else{       
+
+            const user = new User(req.body);
+
+
+            //Crypt password
+            const salt = bcrypt.genSaltSync();
+            user.password = bcrypt.hashSync(password, salt);
+
+            await user.save();
+
+
+            //Generate JWT
+
+            const token = await generateToken(user.id);
+
+            res.json({
+                ok:true,  
+                msg:'Successful registration',      
+                user,
+                token
             });
         }
-
-        const user = new User(req.body);
-
-
-        //Crypt password
-        const salt = bcrypt.genSaltSync();
-        user.password = bcrypt.hashSync(password, salt);
-
-        await user.save();
-
-
-        //Generate JWT
-
-        const token = await generateToken(user.id);
-
-        res.json({
-            ok:true,        
-            user,
-            token
-        });
         
     } catch (error) {
 
         res.status(500).json({
             ok:false,           
-            msg: error
+            msg: 'Register error, invalid fields'
         });
     }
     
@@ -73,7 +75,7 @@ const login = async( req, res = response ) =>{
                 res.json({
                     ok:true,        
                     msg:'Logged in',
-                    userDB,
+                    user:userDB,
                     token
                 });
 
@@ -89,7 +91,7 @@ const login = async( req, res = response ) =>{
 
         }else{
 
-            res.status(404).json({
+            res.status(200).json({
                 ok:false,        
                 msg:'Email does not exist'
             });
@@ -127,6 +129,7 @@ const renewToken = async( req, res = response ) =>{
             res.json({
                 ok:true,
                 user,
+                msg:'Token renew',
                 token
             });
 
