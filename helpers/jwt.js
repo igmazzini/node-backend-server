@@ -26,6 +26,25 @@ const generateToken = ( uid ) => {
 };
 
 
+const validateToken = ( token = '') => {
+
+    try {
+
+        const { uid }  = jwt.verify(token, process.env.JWT_KEY);
+
+        if(uid){
+            return [true,uid];
+        }
+        
+    } catch (error) {
+        
+        return [false,error];
+    }
+    
+}
+
+
 module.exports = {
-    generateToken
+    generateToken,
+    validateToken
 }
